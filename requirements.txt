@@ -1,0 +1,7 @@
+streamlit
+PIL
+time
+ultralytics
+io
+pandas
+matplotlib
