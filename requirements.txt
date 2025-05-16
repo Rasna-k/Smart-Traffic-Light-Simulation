@@ -1,6 +1,4 @@
 pillow
-time
 ultralytics
-io
 pandas
 matplotlib
