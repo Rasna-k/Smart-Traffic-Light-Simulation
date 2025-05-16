@@ -2,3 +2,4 @@ pillow
 ultralytics
 pandas
 matplotlib
+opencv-python-headless
