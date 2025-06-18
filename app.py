@@ -17,8 +17,14 @@ st.markdown(
 st.markdown("Upload images from each direction of a 4-way intersection. The system will detect vehicles and assign green light duration based on vehicle count.")
 
 # --- YOLOv8 Model ---
-model = YOLO("yolov8n.pt")
+model = YOLO("yolov8m.pt")
 vehicle_ids = [2, 3, 5, 7]  # car, motorcycle, bus, truck
+class_names = {
+    2: 'car',
+    3: 'motorcycle',
+    5: 'bus',
+    7: 'truck'
+}
 
 # --- Image Upload (4 columns) ---
 st.markdown("### 📷 Upload Traffic Images")
@@ -57,6 +63,19 @@ if all(uploaded_images.values()):
             annotated_array = results[0].plot()
             annotated_img = Image.fromarray(annotated_array[..., ::-1])  # Convert BGR → RGB
             st.session_state.annotated_images[direction] = annotated_img
+            
+            class_counts = {name: 0 for name in class_names.values()}
+    
+
+            for cls in results[0].boxes.cls:
+                cls_id = int(cls.item())
+                if cls_id in class_names:
+                    class_counts[class_names[cls_id]] += 1
+
+            st.session_state.counts[direction] = sum(class_counts.values())
+            st.session_state.class_counts = st.session_state.get("class_counts", {})
+            st.session_state.class_counts[direction] = class_counts
+
 
         # Sort directions by vehicle count (descending)
         st.session_state.sorted_directions = sorted(st.session_state.counts.items(), key=lambda x: x[1], reverse=True)
@@ -152,24 +171,7 @@ if all(uploaded_images.values()):
             st.success("### 🚦 Simulation Complete! All directions have completed their green and yellow phases.")
             counts = st.session_state.counts
             sorted_directions = st.session_state.sorted_directions
-            # st.session_state.clear()
-            # Add restart button
-            # st.markdown("<br>", unsafe_allow_html=True)
-            # if st.button("🔄 Restart Simulation"):
-                # for key in [
-                #     "annotated_images", "counts", "sorted_directions",
-                #     "current_index", "phase", "finished"
-                # ]:
-                #     if key in st.session_state:
-                #         del st.session_state[key]
-                #    st.markdown(
-                #                 """
-                #                 <script>
-                #                     window.location.reload();
-                #                 </script>
-                #                 """,
-                #                 unsafe_allow_html=True
-                #             )
+            
             
             st.markdown("<br>", unsafe_allow_html=True)
             # st.markdown("Click below to view detailed traffic insights 👇")
@@ -186,6 +188,27 @@ if all(uploaded_images.values()):
                             f"""
                             <br>
                             <h3 style='font-size: 24px; font-weight: bold;'>🚗 Total Vehicles Detected: <span style='color: #4da6ff;'>{total_vehicles}</span></h3>""",unsafe_allow_html=True)
+            
+            # Combine all class-wise counts into one DataFrame
+            combined_data = {}
+            for direction in directions:
+                if direction in st.session_state.class_counts:
+                    for vehicle_type, count in st.session_state.class_counts[direction].items():
+                        if combined_data not in vehicle_type:
+                            vehicle_type[combined_data] = {}
+                        vehicle_type[combined_data][direction] = count
+
+            # Convert to DataFrame
+            df_combined = pd.DataFrame(vehicle_type).T.fillna(0).astype(int)
+            df_combined = df_combined[directions]  # column order
+
+            st.markdown("### 🧾 Combined Vehicle Class Table")
+            st.dataframe(
+                df_combined.style.set_caption("Vehicle Type Counts per Direction")
+                .background_gradient(cmap='YlGnBu', axis=None)
+                .set_properties(**{'text-align': 'center', 'font-size': '14px'})
+            )
+
                 
             # 2. Bar chart for vehicle count
             st.markdown("<br><h3 style='font-size: 24px; font-weight: bold;'>🚦 Vehicle Count per Direction</h3>", unsafe_allow_html=True)
@@ -193,7 +216,7 @@ if all(uploaded_images.values()):
             vehicle_counts = st.session_state.counts                
             fig, ax = plt.subplots(figsize=(4,4))
 
-            # Plot the bar char
+            # Plot the bar chart
             ax.bar(vehicle_counts.keys(), vehicle_counts.values(), color='teal')
 
             # Add numbers on top of the bars
@@ -222,7 +245,7 @@ if all(uploaded_images.values()):
                             unsafe_allow_html=True
                         )
 
-                # 4. Green time per direction
+            # 4. Green time per direction
             base_time = 5
             time_per_vehicle = 1
             max_time = 25                
@@ -246,7 +269,7 @@ if all(uploaded_images.values()):
                             'text-align' : 'left'
                             }), use_container_width=True)
 
-            # 5. Pie chart (optional)
+            # 5. Pie chart 
             import pandas as pd
             df = pd.DataFrame.from_dict(st.session_state.counts, orient='index', columns=['Vehicles'])
             st.markdown("<h4 style='font-size: 20px; font-weight: bold;'>📈 Traffic Share by Direction</h4>", unsafe_allow_html=True)
