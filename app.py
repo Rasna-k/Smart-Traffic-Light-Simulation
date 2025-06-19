@@ -17,7 +17,7 @@ st.markdown(
 st.markdown("Upload images from each direction of a 4-way intersection. The system will detect vehicles and assign green light duration based on vehicle count.")
 
 # --- YOLOv8 Model ---
-model = YOLO("yolov8m.pt")
+model = YOLO("yolov8s.pt")
 vehicle_ids = [2, 3, 5, 7]  # car, motorcycle, bus, truck
 class_names = {
     2: 'car',
