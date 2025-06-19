@@ -297,7 +297,7 @@ if all(uploaded_images.values()):
                     else:
                         # Waiting time is the sum of green times of all directions before this one (excluding busiest and current)
                         preceding_directions = [d for d, _ in st.session_state.sorted_directions if d != direction and d != busiest_direction]
-                        wait = sum(min(5 + st.session_state.counts[d] * time_per_vehicle, 30) + 3  # green + yellow
+                        wait = sum(min(5 + int(st.session_state.counts[d]/2) * time_per_vehicle, 30) + 3  # green + yellow
                                 for d in preceding_directions)
                         waiting_times[direction] = wait
 
