@@ -189,17 +189,17 @@ if all(uploaded_images.values()):
                             <br>
                             <h3 style='font-size: 24px; font-weight: bold;'>🚗 Total Vehicles Detected: <span style='color: #4da6ff;'>{total_vehicles}</span></h3>""",unsafe_allow_html=True)
             
-            # Combine all class-wise counts into one DataFrame
+             # Combine all class-wise counts into one DataFrame
             combined_data = {}
             for direction in directions:
                 if direction in st.session_state.class_counts:
                     for vehicle_type, count in st.session_state.class_counts[direction].items():
-                        if combined_data not in vehicle_type:
-                            vehicle_type[combined_data] = {}
-                        vehicle_type[combined_data][direction] = count
+                        if vehicle_type not in combined_data:
+                            combined_data[vehicle_type] = {}
+                        combined_data[vehicle_type][direction] = count
 
             # Convert to DataFrame
-            df_combined = pd.DataFrame(vehicle_type).T.fillna(0).astype(int)
+            df_combined = pd.DataFrame(combined_data).T.fillna(0).astype(int)
             df_combined = df_combined[directions]  # column order
 
             st.markdown("### 🧾 Combined Vehicle Class Table")
@@ -208,7 +208,6 @@ if all(uploaded_images.values()):
                 .background_gradient(cmap='YlGnBu', axis=None)
                 .set_properties(**{'text-align': 'center', 'font-size': '14px'})
             )
-
                 
             # 2. Bar chart for vehicle count
             st.markdown("<br><h3 style='font-size: 24px; font-weight: bold;'>🚦 Vehicle Count per Direction</h3>", unsafe_allow_html=True)
