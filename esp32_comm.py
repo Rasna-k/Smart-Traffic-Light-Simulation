@@ -1,13 +1,15 @@
 import requests
 
-ESP32_IP = "http://192.168.1.45"   # <-- change this
+ESP32_IP = "http://192.168.0.107"   # <-- CHANGE THIS
 
-def send_phase(ns, ew):
+def send_signal(direction, phase):
     """
-    ns, ew = 'green', 'yellow', 'red'
+    direction: North, South, East, West
+    phase: green, yellow, red
     """
+
     try:
-        url = f"{ESP32_IP}/set?ns={ns}&ew={ew}"
+        url = f"{ESP32_IP}/set?dir={direction}&state={phase}"
         requests.get(url, timeout=2)
     except Exception as e:
         print("ESP32 Error:", e)
