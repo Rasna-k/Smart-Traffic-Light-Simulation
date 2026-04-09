@@ -1,6 +1,6 @@
 import requests
 
-ESP32_IP = "http://192.168.0.107"   # <-- CHANGE THIS
+ESP32_IP = "http://10.149.225.219"   # <-- CHANGE THIS
 
 def send_signal(direction, phase):
     """
