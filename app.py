@@ -5,6 +5,7 @@ from ultralytics import YOLO
 import io
 import matplotlib.pyplot as plt
 import pandas as pd
+from esp32_comm import send_signal
 
 # --- Page Config ---
 st.set_page_config(page_title="Smart Traffic Light System", layout="wide")
@@ -142,7 +143,19 @@ if all(uploaded_images.values()):
     for idx, direction in enumerate(directions):
         with img_cols[idx]:
             st.image(st.session_state.annotated_images[direction], caption=f"{direction} - Vehicles: {st.session_state.counts[direction]}", use_container_width=True)
+   
+# --- SEND SIGNAL TO ESP32 ---
+    if st.session_state.phase == "green":
+        send_signal(current_direction, "green")
 
+    elif st.session_state.phase == "yellow":
+        send_signal(current_direction, "yellow")
+
+    # Set all other directions to RED
+    for d in directions:
+        if d != current_direction:
+            send_signal(d, "red")
+    
     # --- Countdown Timer ---
     duration = green_time if st.session_state.phase == "green" else yellow_time
     for remaining in range(duration, 0, -1):
